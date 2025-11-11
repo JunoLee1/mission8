@@ -5,7 +5,7 @@ import { ProductService } from '../src/service/product.service.js';
 import { PrismaClient } from '@prisma/client/extension';
 import { WebsocketService } from '../src/socket/socket.js';
 import type { productDTO } from '../src/dto/product.dto.js';
-import type { CommentDTO } from '../src/dto/comment.dto.js';
+import type { CommentDTO, CommentCreateDTO } from '../src/dto/comment.dto.js';
 
 
 jest.mock('../src/lib/prisma', () => ({
@@ -93,7 +93,7 @@ describe("ProductService",() => {
             userId: 1,
             productId: 1,
             articleId: 0,  
-        } as CommentDTO
+        } as CommentCreateDTO
 
        const mockProductDTO: productDTO = {
             id:11,
@@ -142,7 +142,6 @@ describe("ProductService",() => {
         // debug result
         expect(result).toHaveProperty("name","Test Product2")
         expect(result).toHaveProperty("description","This is a test product")
-        
     })
 })
 
