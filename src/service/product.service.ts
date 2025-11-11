@@ -5,16 +5,17 @@
   import { NotificationService } from "./notification.service.js";
   import type { WebsocketService } from "../socket/socket.js";
   import { emitToUser } from "../server.js";
-  const helper = new Helper();
 
   export class ProductService {
     private prisma: PrismaClient; // ← 필드 선언
     private notificationService: NotificationService;
     private wss: WebsocketService;
-    constructor(prismaClient: PrismaClient, wss: WebsocketService) {
+    private helper: Helper
+    constructor(prismaClient: PrismaClient, wss: WebsocketService, helper:Helper) {
       this.prisma = prismaClient; //  ← 생성자에서 초기화
       this.notificationService = new NotificationService(this.prisma);
       this.wss = wss;
+      this.helper = new Helper;
     }
 
     async accessListProduct(query: ProductQueryDTO) {
@@ -58,13 +59,11 @@
           content:c.content
         })),
       }));
-
-      console.log(result)
       return result;
     }
 
     async accessProduct(id: number) {
-      const result = await helper.findProductById(id);
+      const result = await this.helper.findProductById(id);
 
       if (!result) throw new Error("해당 아이템이 존재 하지않습니다.");
       return result;
@@ -99,7 +98,7 @@
 
       const idNum = Number(id);
       if (!idNum) throw new Error("product id is required");
-      const product = await helper.findProductById(idNum);
+      const product = await this.helper.findProductById(idNum);
       if (!product) throw new Error("해당 제품은 존재 하지않습니다");
 
       if (product.ownerId !== userId) {
@@ -152,7 +151,7 @@
     
     
     async deleteProduct(id: number, userId: number) {
-      const product = await helper.findProductById(id);
+      const product = await this.helper.findProductById(id);
       if (!product) throw new Error("해당 제품은 존재 하지않습니다.");
 
       if (product.ownerId !== userId) {
