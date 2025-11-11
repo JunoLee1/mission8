@@ -1,0 +1,10 @@
+node_modules
+# Keep environment variables out of version control
+.env
+dist
+/src/generated/prisma
+
+coverage/       
+coverage/index.html
+coverage/lcov.info
+coverage/cobertura-coverage.xml
