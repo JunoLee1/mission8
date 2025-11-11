@@ -8,13 +8,18 @@ import type {
 import { Helper } from "../helper/helper.js";
 import { NotificationService } from "./notification.service.js";
 import { emitToUser } from "../server.js";
+import type { WebsocketService } from "../socket/socket.js";
+import { WebSocketServer } from "ws";
+
 const helper = new Helper();
 export class CommentService {
   private prisma: PrismaClient; // ← 필드 선언
   private notificationService: NotificationService;
-  constructor(prisma: PrismaClient) {
+  private wss: WebSocketServer;
+  constructor(prisma: PrismaClient, wss: WebSocketServer) {
     this.prisma = prisma; // <-  생성자에서 필드 초기화
-    this.notificationService = new NotificationService(prisma);
+    this.wss = wss
+    this.notificationService = new NotificationService(prisma, this.wss);
   }
 
   async accessCommentList(elements: CommentQueryDTO) {

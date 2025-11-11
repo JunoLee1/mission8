@@ -10,11 +10,15 @@ import type {
   NotificationQuery,
 } from "../dto/notification.dto.js";
 import type { NotificationPayload } from "../socket/socket.js"; // WebSocketMessage 타입 포함
+import { WebSocketServer } from "ws";
 
 export class NotificationService {
   private prisma: PrismaClient;
-  constructor(prisma: PrismaClient) {
+  private wss : any
+  constructor(prisma: PrismaClient, wss : WebSocketServer) {
     this.prisma = prisma;
+    this.wss  = wss
+    
   }
 
   async accessAlerts(query: NotificationQuery) {
