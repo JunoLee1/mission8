@@ -36,7 +36,7 @@ describe("notification",() => {
 
     beforeAll(async()=>{
          // 의존성 주입
-        server = new WS("ws://localhost:1234");
+        server = "ws://localhost:1234";
         notificationService = new NotificationService(mockMethod as unknown as PrismaClient, server as any)
         productService = new ProductService(mockMethod as unknown as PrismaClient, helperMock, notificationService )
         commentService = new CommentService(mockMethod as unknown as PrismaClient, notificationService )
