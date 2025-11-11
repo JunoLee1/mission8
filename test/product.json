@@ -1,0 +1,27 @@
+{
+    "product1":
+    {
+        "id": 1,
+        "name": "testProduct",
+        "description": "test",
+        "price": 1000,
+        "createdAt":"2025-01-29" ,
+        "updatedAt": "2025-01-25" ,
+        "ownerId": 1,
+        "comment": [{"content":"test"}],
+        "productTags": [{"tag":{"id":0, "name":"electronic"} }]
+    },
+    "product2":
+    {
+        "id": 2,
+        "name": "testProduct1",
+        "description": "test",
+        "price": 1000,
+        "createdAt":"2025-01-29" ,
+        "updatedAt": "2025-01-25" ,
+        "ownerId": 1,
+        "comment": [{"content":"test"}],
+        "productTags": [{"tag":{ "id":0, "name":"electronic"} }]
+    }
+    
+}

@@ -3,7 +3,7 @@ import express from "express";
 import { Server } from "socket.io";
 import  app  from "./index.js";
 import { NotificationService } from "./service/notification.service.js";
-import prisma from "lib/prisma.js";
+import prisma from "./lib/prisma.js";
 import { Socket } from "socket.io";
 
 const notificationService = new NotificationService(prisma);
@@ -38,7 +38,8 @@ export const emitToUser = (userId : number, event :string, payload:any )=> {
     }
 
 }
-
+if (process.env.NODE_ENV !== "test") {
 server.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
+}
