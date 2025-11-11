@@ -2,12 +2,21 @@ import { describe, expect, test, beforeAll, beforeEach, afterEach, it } from '@j
 import mockData from './product.json' with { type: 'json' };
 import mockMethod from './__mock__/prisma.js';
 import { ProductService } from '../src/service/product.service.js';
-import { PrismaClient } from '@prisma/client/extension';
+import { PrismaClient } from '@prisma/client';
 import { WebsocketService } from '../src/socket/socket.js';
 import type { productDTO } from '../src/dto/product.dto.js';
-import type { CommentDTO } from '../src/dto/comment.dto.js';
+import type { CommentDTO, CommentCreateDTO } from '../src/dto/comment.dto.js';
+import { Helper } from '../src/helper/helper.js';
 
-
+const helper = new Helper()
+const helperMock: {
+  findProductById: jest.Mock<
+    Promise<{ id: number; name: string; description: string | null; price: number; ownerId: number; createdAt: Date; updatedAt: Date } | null>,
+    [number]
+  >
+} = {
+  findProductById: jest.fn(),
+};
 jest.mock('../src/lib/prisma', () => ({
   __esModule: true,
   default: mockMethod,
@@ -16,6 +25,7 @@ jest.mock('../src/lib/prisma', () => ({
 describe("ProductService",() => {
     let productService :ProductService;
     let wssMock: Partial<WebsocketService>;
+    helperMock
 
     beforeEach(() => {
         jest.clearAllMocks()
@@ -26,7 +36,9 @@ describe("ProductService",() => {
           broadcast: jest.fn(),
         //emit: jest.fn(), // emit도 mock해주는게 안전
     }
-    productService = new ProductService (mockMethod  as unknown as PrismaClient, wssMock as WebsocketService );
+    helper 
+    helperMock.findProductById = jest.fn();
+    productService = new ProductService (mockMethod  as unknown as PrismaClient, wssMock as WebsocketService , helper);
     }); // -> 초기 데이터 값
 
 
@@ -93,7 +105,7 @@ describe("ProductService",() => {
             userId: 1,
             productId: 1,
             articleId: 0,  
-        } as CommentDTO
+        } as CommentCreateDTO
 
        const mockProductDTO: productDTO = {
             id:11,
@@ -132,7 +144,17 @@ describe("ProductService",() => {
             ownerId:1,
             productTags: [1], // 태그 ID
         };
+    
         // set return value
+        helperMock.findProductById.mockResolvedValue({
+            id: 1,
+            name: "Old Product",
+            description: "Old desc",
+            price: 5000,
+            ownerId: 1,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        });
         mockMethod.product.update.mockImplementation(async(args) => ({
             ...args.data
         }))
@@ -142,7 +164,6 @@ describe("ProductService",() => {
         // debug result
         expect(result).toHaveProperty("name","Test Product2")
         expect(result).toHaveProperty("description","This is a test product")
-        
     })
 })
 
