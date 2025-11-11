@@ -4,7 +4,7 @@
   import { Helper } from "../helper/helper.js";
   import { NotificationService } from "./notification.service.js";
   import type { WebsocketService } from "../socket/socket.js";
-  import { emitToUser } from "server.js";
+  import { emitToUser } from "../server.js";
   const helper = new Helper();
 
   export class ProductService {
@@ -42,11 +42,24 @@
           comment: true,
         },
       });
+      
       const result = products.map((p) => ({
-        ...p,
-        tags: p.productTags.map((pt) => pt.tag),
-        comments: p.comment,
+        id :p.id,
+        name:p.name,
+        description:p.description,
+        price:p.price,
+        ownerId: p.ownerId,
+        productTags: p.productTags.map(pt => 
+          pt.tag.id
+        ),
+        comments: p.comment.map((c) =>({
+          id: c.id,
+          name:c.name,
+          content:c.content
+        })),
       }));
+
+      console.log(result)
       return result;
     }
 
@@ -93,10 +106,6 @@
         throw new Error("Unathorized");
       }
 
-      const oldProduct = await prisma.product.findUnique({
-        where: { id: idNum },
-      });
-
       const data: any = {
         name,
         description,
@@ -110,18 +119,15 @@
             }
           : undefined,
       };
-
-      if (!id) throw new Error("product id is required");
       const updated = await prisma.product.update({
         where: { id: idNum },
         data
       });
-      if (!oldProduct) throw new Error("해당 제품이 존재 하지 않습니다");
-      if (oldProduct?.price !== updated.price) {
+      if (product.price !== updated.price) {
         const likers = await prisma.like.findMany({
           where: { productId: updated.id },
           select: { userId: true },
-        });
+        })||[];
 
         for (const liker of likers) {
           if (liker.userId !== userId) { // 상품 올린사람이 아닌 경우
@@ -134,7 +140,7 @@
               undefined,
               updated.id,
               undefined,
-              oldProduct.price,
+              product.price,
               updated.price
             );
             emitToUser(liker.userId,"CHANGED_PRICE",payload)

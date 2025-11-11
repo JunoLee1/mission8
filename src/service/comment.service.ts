@@ -40,8 +40,7 @@ export class CommentService {
   }
 
   async createComment(nickname: string, elements: CommentDTO) {
-    const { content, title, name, type, productId, articleId, userId } =
-      elements;
+    const { content, title, name, type, productId, articleId, userId} = elements;
     const article = await prisma.article.findUnique({
       where: { id: articleId },
       select: { ownerId: true, title: true },

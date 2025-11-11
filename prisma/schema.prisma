@@ -40,7 +40,6 @@ enum NotificationCategory {
   NEW_COMMENT
   NEW_LIKE
   CHANGED_PRICE
-  LOGIN_SUCCESS
 }
 
 enum NotificationTypes {

@@ -43,6 +43,7 @@ jest.mock('../src/lib/prisma', () => ({
 
 describe("AuthService test", () => {
   let authService: AuthService;
+  let hashedPassword: string
   const userId = 1;
 
   beforeEach(() => {
@@ -54,23 +55,30 @@ describe("AuthService test", () => {
     // single instance used across tests
     authService = new AuthService(mockMethod as unknown as PrismaClient);
 
+    hashedPassword = await bcrypt.hash(mockData.tempUser1.password, 10)
     // create a predictable hashed password using the mocked bcrypt.hash (returns `hashed_${pw}`)
-    const hashedPassword = await bcrypt.hash(mockData.tempUser1.password, 10);
-
+    
+    /*
     // Use mockResolvedValueOnce to be explicit — safer if tests added later
     mockMethod.user.findUnique.mockResolvedValue({
       id: userId,
       email: mockData.tempUser1.email,
       password: hashedPassword,
     });
+    */
+
   });
 
   it("should login a user", async () => {
     // debug: confirm mock is set
-    console.log("mock findUnique implementation:", mockMethod.user.findUnique.mock);
-
     const { tempUser1 } = mockData;
 
+    mockMethod.user.findUnique.mockResolvedValue({
+      id: userId,
+      email: tempUser1.email,
+      password: hashedPassword
+    });
+    
     // Call login using the same authService instance
     const result = await authService.login(userId, {
       email: tempUser1.email,
@@ -78,10 +86,49 @@ describe("AuthService test", () => {
     });
 
     // debug result
-    console.log("login result:", result);
-
     expect(result).toHaveProperty("refreshToken", "mock_refresh");
     expect(result).toHaveProperty("accessToken", "mock_access");
   });
+
+  it("should register a new user successfully",async () =>{
+    // debug: confirm mock is set
+    const { tempUser1 } = mockData;
+    mockMethod.user.findUnique.mockResolvedValue(null)
+    mockMethod.user.create.mockImplementation((data) => {
+            return Promise.resolve({
+              id: 7,
+              email:data.data.email,
+              password: data.data.password,
+              nickname: data.data.nickname,
+            })
+          })
+  
+    const newUser = await authService.register({email: tempUser1.email, password: tempUser1.password, nickname: tempUser1.nickname})
+   
+    
+    // debug result
+      expect(mockMethod.user.findFirst).toHaveBeenCalledTimes(1);
+      expect(mockMethod.user.create).toHaveBeenCalledTimes(1);
+      expect(mockMethod.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            email: tempUser1.email,
+            nickname: tempUser1.nickname,
+            password: `hashed_${tempUser1.password}`, 
+          },
+        })
+      );
+      
+    expect(newUser).toHaveProperty("email", tempUser1.email);
+    expect(newUser).toHaveProperty("password", hashedPassword);
+    expect(newUser).toHaveProperty("nickname", tempUser1.nickname);
+  })
+
+  it("should throw an error if the user (email) already exists",async () =>{
+  // debug: confirm mock is set
+  const { tempUser1 } = mockData;
+
+   // debug result
+  })
 });
 

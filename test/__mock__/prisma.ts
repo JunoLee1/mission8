@@ -3,7 +3,18 @@ const mockMethod = {
         findUnique: jest.fn(),
         create:jest.fn(),
         update:jest.fn(),
-        findFirst: jest.fn()
+        findFirst: jest.fn(),
+        delete:jest.fn()
+    },
+    product:{
+        findUnique: jest.fn(),
+        create:jest.fn(),
+        update:jest.fn(),
+        delete:jest.fn(),
+        findMany:jest.fn()
+    },
+    like:{
+        findMany:jest.fn()
     }
 }
 export default mockMethod
