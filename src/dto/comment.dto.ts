@@ -39,6 +39,6 @@ export interface CommentCreateDTO {
   createdAt: Date;
   updatedAt: Date;
   userId: number;
-  productId: number;
+  productId: number ;
   articleId: number;
 }

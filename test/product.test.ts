@@ -7,7 +7,7 @@ import { WebsocketService } from '../src/socket/socket.js';
 import type { productDTO } from '../src/dto/product.dto.js';
 import type { CommentCreateDTO } from '../src/dto/comment.dto.js';
 import { Helper } from '../src/helper/helper.js';
-
+import { WebSocketServer } from 'ws';
 const helper = new Helper()
 const helperMock: {
   findProductById: jest.Mock<
@@ -38,7 +38,7 @@ describe("ProductService",() => {
     }
     helper 
     helperMock.findProductById = jest.fn();
-    productService = new ProductService (mockMethod as unknown as PrismaClient, Helper , wssMock as WebsocketService);
+    productService = new ProductService (mockMethod  as unknown as PrismaClient ,wssMock as unknown as WebSocketServer, helper, );
     }); // -> 초기 데이터 값
 
 

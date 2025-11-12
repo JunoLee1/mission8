@@ -55,7 +55,7 @@
         ),
         comments: p.comment.map((c) =>({
           id: c.id,
-          name:c.name,
+          userId: c.userId,
           content:c.content
         })),
       }));

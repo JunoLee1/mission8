@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { AuthService } from "../../service/auth.service.js";
 type VerifyCallBack = (error: any, user?: any, info?: any) => void;
 
-const authService = new AuthService();
+const authService = new AuthService(prisma);
 export const localStrategy = new LocalStrategy(
   {
     usernameField: "email",

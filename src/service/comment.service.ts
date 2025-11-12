@@ -59,8 +59,7 @@ export class CommentService {
       data: {
         content,
         title,
-        name,
-        ...connectData,
+        ...connectData
       },
     });
 

@@ -5,10 +5,11 @@ export interface productDTO {
   name: string;
   description: string;
   price: number;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: string;
+  updatedAt?: string;
   ownerId: number;
-  comment?: Comment[] | null;
+  userId?: number;
+  comment?: Comment[];
   productTags?: number[];
 }
 
