@@ -26,7 +26,7 @@ describe("NotificationService Integration", () => {
   let productService: ProductService;
   let commentService: CommentService;
   let notificationService: NotificationService;
-  let wssMock: WebsocketService ;
+  let wssMock: Partial<WebsocketService> ;
   beforeEach(() => {
     jest.clearAllMocks();
   });
