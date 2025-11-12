@@ -6,5 +6,6 @@ declare module "ws" {
       online: boolean;
       Server: WebSocketServer;
       broadcast
+      emitToUser: (userId: number, message: string) => void;
   }
 }

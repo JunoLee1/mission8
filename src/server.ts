@@ -8,7 +8,7 @@ import type { WebSocket} from "ws";
 
 const server = http.createServer();
 const wss = new Server(server);
-const notificationService = new NotificationService(prisma, wss);
+const notificationService = new NotificationService(prisma, wss as unknown as any);
 const PORT = process.env.PORT || 3000;
 
 const io = new Server(server, {

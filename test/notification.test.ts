@@ -9,7 +9,13 @@ import mockData from './notification.json' with { type: 'json' };
 import { PrismaClient } from '@prisma/client';
 import { Helper } from '../src/helper/helper.js';
 import { WebsocketService } from '../src/socket/socket.js';
-import type { WebSocketServer } from 'ws';
+import { WebSocketServer } from 'ws';
+
+
+const mockNotificationService = {
+  createAndGenerate: jest.fn().mockResolvedValue({ payload: {} }),
+};
+
 
 // ✅ Helper mock 설정
 const helperMock = {
@@ -22,11 +28,12 @@ jest.mock('../src/lib/prisma', () => ({
   default: mockMethod,
 }));
 
+const wssMock = { broadcast: jest.fn(), emitToUser: jest.fn(), };
 describe("NotificationService Integration", () => {
   let productService: ProductService;
   let commentService: CommentService;
   let notificationService: NotificationService;
-  let wssMock: Partial<WebsocketService> ;
+  let wssMock: WebsocketService;
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -34,10 +41,18 @@ describe("NotificationService Integration", () => {
   beforeAll(() => {
     // ✅ WebSocketService mock
     wssMock = {
-      broadcast: jest.fn(),
-      //emitToUser: jest.fn(),
-    } 
+        emitToUser: jest.fn(),
+        setupWebsocket: jest.fn(),
+        userSocketMap: new Map<number, any>(),
+        handleClientMessage: jest.fn(),
+        wss: {
+            clients: new Set(), // 필요할 때만
+            on: jest.fn(),
+            close: jest.fn(),
+        }as unknown as WebSocketServer
+    } as unknown as WebsocketService
 
+    mockNotificationService as any
     // ✅ 서비스 초기화
     notificationService = new NotificationService(
       mockMethod as unknown as PrismaClient,
@@ -46,7 +61,8 @@ describe("NotificationService Integration", () => {
     productService = new ProductService(
       mockMethod as unknown as PrismaClient,
       wssMock,
-      helperMock as unknown as Helper
+      helperMock as unknown as Helper,
+      //mockNotificationService as any
     );
     commentService = new CommentService(
       mockMethod as unknown as PrismaClient,
@@ -54,6 +70,44 @@ describe("NotificationService Integration", () => {
     );
   });
 
+  it("알림 생성 및 전송 테스트", async () => {
+    const {alert1} = mockData;
+
+    // 🔹 가짜 알림 생성 mock 설정
+    mockMethod.notification.create.mockResolvedValue(alert1);
+    
+    // 🔹 알림 서비스 mock 동작
+    wssMock.emitToUser = jest.fn();
+    // 🔹 notificationService의 createAndGenerate 메서드 호출
+    const result = await notificationService.createAndGenerate(
+        1, // senderId
+        2, // receiverId
+        "새 댓글 알림", // title
+        "UNREAD", // type
+        "NEW_COMMENT", // category          
+        1, // productId
+        1, // articleId
+        "사용자1이 당신의 제품에 댓글을 남겼습니다.", // content
+        undefined, // oldPrice
+        undefined  // newPrice
+    );
+    
+    // 🔹 emitToUser 호출 검증
+    expect(wssMock.emitToUser).toHaveBeenCalledWith(
+        2,
+        "notification",
+        expect.objectContaining({
+            type: "NEW_COMMENT",
+            message: "사용자1이 당신의 제품에 댓글을 남겼습니다.",
+        })
+    );
+
+    // 🔹 결과 검증
+    expect(result).toHaveProperty("payload");
+    expect(result.payload).toHaveProperty("type", "NEW_COMMENT");
+  });
+  
+  
   it("댓글 생성 시 알림 발생", async () => {
     const { alert1 } = mockData;
 
@@ -61,9 +115,9 @@ describe("NotificationService Integration", () => {
     mockMethod.comment.create.mockResolvedValue(alert1);
 
     // 🔹 알림 서비스 mock 동작
-    wssMock.broadcast = jest.fn();
+    wssMock.emitToUser = jest.fn();
 
-    // 🔹 commentService의 create 메서드 호출 (예시)
+    // 🔹 commentService의 create 메서드 호출 
     const result = await commentService.createComment("juno", {
         name: "테스터",
         articleId: 1,   
@@ -88,28 +142,34 @@ describe("NotificationService Integration", () => {
     expect(wssMock.broadcast).toHaveBeenCalled();
   });
 
-  it("좋아요 제품 가격 변동 시 알림 발생", async () => {
+  it("modifyProduct: 좋아요를 누른  사용자에게만 있는 제품 가격이 변동되면 알림을 전송한다", async () => {
+    
+    // debug: confirm mock is set
     const { product1 } = mockProductData;
-    mockMethod.product.update.mockResolvedValue({
-      ...product1,
-      price: 999,
-    });
+
+    // 제품 조회 mock 설정
+    mockMethod.product.findUnique.mockResolvedValue(product1);
+
+    // 유저가 좋아요를 누른 제품 mock 설정
+    mockMethod.like.findMany.mockResolvedValue([
+      { id: 1, userId: 2, productId: 1 },
+      { id: 2, userId: 3, productId: 1 },
+    ]);
+    
+    productService.mockNotificationService.createAndGenerate = jest.fn().mockImplementation((senderId, receiverId, title, type, category, content, productId, articleId, oldPrice, newPrice) => ({
+      payload: { senderId, receiverId, title, type, category, oldPrice, newPrice },
+    }));
+
+    // 제품 가격 변경 알림 호출
+   notificationService.emitToUser(2,);
+
+    // set return value
+
+    // debug result
+  
+    mockMethod.product.update.mockResolvedValue({id :1 });
     wssMock.broadcast = jest.fn();
-
-    await productService.modifyProduct(1, {
-        id: product1.id,
-      name: product1.name,
-      description: product1.description || "",
-      price: 999,
-      ownerId: product1.ownerId,
-      productTags: [],
-      userId:1,
-      comment,
-      createdAt: product1.createdAt,
-      updatedAt: product1.updatedAt,
-        
-    });
-
+    
     expect(wssMock.broadcast).toHaveBeenCalled();
   });
 });

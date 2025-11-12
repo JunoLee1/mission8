@@ -38,7 +38,7 @@ describe("ProductService",() => {
     }
     helper 
     helperMock.findProductById = jest.fn();
-    productService = new ProductService (mockMethod  as unknown as PrismaClient ,wssMock as unknown as WebSocketServer, helper, );
+    productService = new ProductService (mockMethod  as unknown as PrismaClient ,wssMock as unknown as WebsocketService, helperMock as unknown as Helper);
     }); // -> 초기 데이터 값
 
 

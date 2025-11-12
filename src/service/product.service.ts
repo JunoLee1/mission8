@@ -5,13 +5,14 @@
   import { NotificationService } from "./notification.service.js";
   import { WebSocketServer } from "ws";
   import { emitToUser } from "../server.js";
+  import type { WebsocketService } from "../socket/socket.js";
 
   export class ProductService {
     private prisma: PrismaClient; // ← 필드 선언
     private notificationService: NotificationService;
-    private wss: WebSocketServer;
+    private wss: WebsocketService;
     private helper: Helper
-    constructor(prismaClient: PrismaClient, wss: WebSocketServer, helper:Helper) {
+    constructor(prismaClient: PrismaClient, wss: WebsocketService, helper:Helper) {
       this.prisma = prismaClient; //  ← 생성자에서 초기화
       this.wss = wss;
       this.notificationService = new NotificationService(this.prisma, this.wss);

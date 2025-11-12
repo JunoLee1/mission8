@@ -15,8 +15,8 @@ const helper = new Helper();
 export class CommentService {
   private prisma: PrismaClient; // ← 필드 선언
   private notificationService: NotificationService;
-  private wss: WebSocketServer;
-  constructor(prisma: PrismaClient, wss: WebSocketServer) {
+  private wss: WebsocketService;
+  constructor(prisma: PrismaClient, wss: WebsocketService) {
     this.prisma = prisma; // <-  생성자에서 필드 초기화
     this.wss = wss
     this.notificationService = new NotificationService(prisma, this.wss);

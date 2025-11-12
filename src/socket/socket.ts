@@ -1,5 +1,5 @@
   import WebSocket, { WebSocketServer } from "ws";
-  
+  import { Socket } from "socket.io";
   import http from "http";
   interface PingMessage {
     type: "ping";
@@ -58,6 +58,14 @@
           client.send(JSON.stringify(message));
         }
       });
+    }
+     userSocketMap = new Map<number, Socket>();
+    public emitToUser = (userId : number, event :string, payload:any )=> {
+        const socket = this.userSocketMap.get(userId);
+        if (socket && socket.connected) {
+            socket.emit(event, payload);
+        }
+    
     }
     private setupWebsocket() {
       this.wss.on("connection", (ws: WebSocket) => {

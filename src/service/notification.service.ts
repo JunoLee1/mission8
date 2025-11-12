@@ -11,10 +11,11 @@ import type {
 } from "../dto/notification.dto.js";
 import type { NotificationPayload } from "../socket/socket.js"; // WebSocketMessage 타입 포함
 import  { WebSocketServer } from "ws";
+import type { WebsocketService } from "../socket/socket.js";
 export class NotificationService {
   private prisma: PrismaClient;
-  private wss: WebSocketServer
-  constructor(prisma: PrismaClient, wss : WebSocketServer) {
+  private wss: WebsocketService
+  constructor(prisma: PrismaClient, wss : WebsocketService) {
     this.prisma = prisma;
     this.wss  = wss
   }
@@ -129,5 +130,12 @@ export class NotificationService {
           message: content,
         };
     }
+  }
+  emitToUser(userId: number, message: NotificationPayload) {
+    this.wss.clients.forEach((client: any) => {
+      if (client.readyState === WebSocketServer.OPEN && client.userId === userId) {
+        client.send(JSON.stringify({ type: "notification", payload: message }));
+      }
+    });
   }
 }
