@@ -18,7 +18,7 @@ export class CommentService {
   private wss: WebsocketService;
   constructor(prisma: PrismaClient, wss: WebsocketService) {
     this.prisma = prisma; // <-  생성자에서 필드 초기화
-    this.wss = wss
+    this.wss = wss;
     this.notificationService = new NotificationService(prisma, this.wss);
   }
 
@@ -44,43 +44,61 @@ export class CommentService {
     return comment;
   }
 
-  async createComment(nickname: string, elements: CommentDTO) {
-    const { content, title, name, type, productId, articleId, userId} = elements;
-    const article = await prisma.article.findUnique({
-      where: { id: articleId },
-      select: { ownerId: true, title: true },
-    });
-    if (!article) throw new Error("해당 게시글이 존재하지 않습니다");
+  async createComment(userId: number, nickname: string, elements: CommentDTO) {
+    const { content, title, type, productId, articleId } = elements;
     const connectData =
       type === "MARKET"
-        ? { connect: { id: productId } }
-        : { connect: { id: articleId } };
+        ? { product: { connect: { id: productId } } }
+        : { article: { connect: { id: articleId } } };
     const result = await this.prisma.comment.create({
       data: {
         content,
         title,
-        ...connectData
+        type,
+        ...connectData,
       },
     });
+  let targetId: number | undefined;
+    if (type === "MARKET") {
+      const product = await prisma.product.findUnique({
+        where: { id: productId },
+        select: { ownerId: true },
+      });
+      if (!product) throw new Error("해당 제품이 존재 하지 않습니다");
+      targetId = product.ownerId;
+    }
+    else if (type === "ARTICLE") {
+      const article = await prisma.article.findUnique({
+        where: {
+          id: articleId,
+        },
+        select: { ownerId: true },
+      });
+      if (!article) throw new Error("해당 게시글이 존재 하지 않습니다");
+      targetId = article.ownerId;
+    }
 
-    if (article.ownerId !== userId) {
+    if (targetId === undefined) {
+  throw new Error("댓글 대상이 존재하지 않습니다");
+}
+const targetEntityId = type === "MARKET" ? productId : articleId;
+    if (targetId !== userId) {
       const { notification, payload } =
         await this.notificationService.createAndGenerate(
           userId,
-          article.ownerId,
+          targetId,
           `${nickname}님이 댓글을 남겼습니다.`,
           "UNREAD",
           "NEW_COMMENT",
-          articleId
+          targetEntityId
         );
-      emitToUser(article.ownerId, "NEW_COMMENT", {
+      emitToUser(targetId, "NEW_COMMENT", {
         type: "NEW_COMMENT",
         payload,
       });
     }
     return result;
   }
-
   async modifyComment(userId: Number, elements: CommentPatchDTO) {
     const { id, content, title } = elements;
     const commentId = id;

@@ -3,8 +3,8 @@ import type { Comment } from "@prisma/client";
 export interface ArticleQueryDTO {
   page: number;
   take: number;
-  title: string;
-  content: string;
+  title?: string;
+  content?: string;
   keyword: string;
 }
 

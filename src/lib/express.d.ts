@@ -5,7 +5,7 @@ declare global {
     interface User {
       id?: number;
       email: string | null;
-      nickname: string | null;
+      nickname: string ;
       password: string | null;
     }
     interface Request {

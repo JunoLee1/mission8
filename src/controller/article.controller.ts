@@ -5,17 +5,21 @@ import type {
   ArticleQueryDTO,
   PatchArticleDTO,
 } from "../dto/article.dto.js";
+import type { PrismaClient } from "@prisma/client/extension";
 
 export class ArticleController {
   private articleService: ArticleService;
-  constructor() {
-    this.articleService = new ArticleService();
+  private prisma: PrismaClient;
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+    this.articleService = new ArticleService(this.prisma);
   }
 
   async accessArticleList(req: Request, res: Response, next: NextFunction) {
     try {
       const { page, take, title, content, keyword } = req.query;
 
+      
       const query: ArticleQueryDTO = {
         // <- 타입 지정
         page: Number(page ?? 1),
@@ -36,6 +40,7 @@ export class ArticleController {
   }
 
   async accessArticle(req: Request, res: Response, next: NextFunction) {
+    console.log("accessArticle 호출됨");
     try {
       const articleId = Number(req.params.id);
       const result = await this.articleService.accessArticle(articleId);
