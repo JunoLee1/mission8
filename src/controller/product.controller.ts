@@ -5,13 +5,16 @@ import prisma from "../lib/prisma.js";
 import type { Comment, ProductTag } from "@prisma/client";
 import { Server as HttpServer } from "http";
 import { WebsocketService } from "../socket/socket.js";
+import {WebSocketServer} from "ws";
+import { Helper } from "helper/helper.js";
 
+const helper = new Helper()
 export class ProductController {
   private productService: ProductService;
-  private wss: WebsocketService;
+  private wss: WebSocketServer
   constructor(server: HttpServer) {
-    this.wss = new WebsocketService(server);
-    this.productService = new ProductService(prisma, this.wss);
+    this.wss = new WebSocketServer
+    this.productService = new ProductService(prisma, this.wss, helper);
   }
   async accessListProduct(req: Request, res: Response, next: NextFunction) {
     try {

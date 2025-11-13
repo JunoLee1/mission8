@@ -1,13 +1,14 @@
 import http from "http";
-import express from "express";
 import { Server } from "socket.io";
-import  app  from "./index.js";
 import { NotificationService } from "./service/notification.service.js";
 import prisma from "./lib/prisma.js";
 import { Socket } from "socket.io";
+import type { WebSocket} from "ws";
 
-const notificationService = new NotificationService(prisma);
+
 const server = http.createServer();
+const wss = new Server(server);
+const notificationService = new NotificationService(prisma, wss as unknown as any);
 const PORT = process.env.PORT || 3000;
 
 const io = new Server(server, {
@@ -19,6 +20,10 @@ const io = new Server(server, {
 const userSocketMap = new Map<number, Socket>();
 io.on("connection", (socket) => {
 
+
+  socket.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
+    ws.online = true; 
+})
     socket.on("REGISTER_USER", ({ userId }) => {
         userSocketMap.set(userId, socket);
         console.log(`Registered user ${userId} with socket ${socket.id}`);

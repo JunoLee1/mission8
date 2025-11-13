@@ -6,15 +6,18 @@ import type {
 } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 import type {
-  NotificationDTO,
   NotificationQuery,
 } from "../dto/notification.dto.js";
 import type { NotificationPayload } from "../socket/socket.js"; // WebSocketMessage 타입 포함
+import WebSocket, { WebSocketServer } from "ws";
 
+import type { WebsocketService } from "../socket/socket.js";
 export class NotificationService {
   private prisma: PrismaClient;
-  constructor(prisma: PrismaClient) {
+  private wss: WebsocketService
+  constructor(prisma: PrismaClient, wss : WebsocketService) {
     this.prisma = prisma;
+    this.wss  = wss
   }
 
   async accessAlerts(query: NotificationQuery) {
@@ -104,8 +107,8 @@ export class NotificationService {
       case "NEW_COMMENT":
         return {
           type: "NEW_COMMENT",
-          articleId: articleId!,
-          productId: productId!,
+          articleId: articleId ?? 0,
+          productId: productId ?? 0,
           commenter: nickname ?? "unknown",
           userId,
           message: content,
@@ -127,5 +130,12 @@ export class NotificationService {
           message: content,
         };
     }
+  }
+  emitToUser(userId: number, message: NotificationPayload) {
+    this.wss.clients.forEach((client: any) => {
+      if (client.readyState === WebSocket.OPEN && client.userId === userId) {
+        client.send(JSON.stringify({ type: "notification", payload: message }));
+      }
+    });
   }
 }

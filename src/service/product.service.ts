@@ -3,8 +3,9 @@
   import { PrismaClient } from "@prisma/client";
   import { Helper } from "../helper/helper.js";
   import { NotificationService } from "./notification.service.js";
-  import type { WebsocketService } from "../socket/socket.js";
+  import { WebSocketServer } from "ws";
   import { emitToUser } from "../server.js";
+  import type { WebsocketService } from "../socket/socket.js";
 
   export class ProductService {
     private prisma: PrismaClient; // ← 필드 선언
@@ -13,8 +14,8 @@
     private helper: Helper
     constructor(prismaClient: PrismaClient, wss: WebsocketService, helper:Helper) {
       this.prisma = prismaClient; //  ← 생성자에서 초기화
-      this.notificationService = new NotificationService(this.prisma);
       this.wss = wss;
+      this.notificationService = new NotificationService(this.prisma, this.wss);
       this.helper = new Helper;
     }
 
@@ -55,7 +56,7 @@
         ),
         comments: p.comment.map((c) =>({
           id: c.id,
-          name:c.name,
+          userId: c.userId,
           content:c.content
         })),
       }));
@@ -106,9 +107,9 @@
       }
 
       const data: any = {
-        name,
-        description,
-        price,
+        name : name ?? product.name ,
+        description: description ?? product.description,
+        price : price ?? product.price,
         ownerId: userId,
         productTags: productTags?.length
           ? {
