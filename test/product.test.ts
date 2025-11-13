@@ -7,7 +7,7 @@ import { WebsocketService } from '../src/socket/socket.js';
 import type { productDTO } from '../src/dto/product.dto.js';
 import type { CommentCreateDTO } from '../src/dto/comment.dto.js';
 import { Helper } from '../src/helper/helper.js';
-import { WebSocketServer } from 'ws';
+import { NotificationService } from '../src/service/notification.service.js';
 const helper = new Helper()
 const helperMock: {
   findProductById: jest.Mock<
@@ -38,7 +38,7 @@ describe("ProductService",() => {
     }
     helper 
     helperMock.findProductById = jest.fn();
-    productService = new ProductService (mockMethod  as unknown as PrismaClient ,wssMock as unknown as WebsocketService, helperMock as unknown as Helper);
+    productService = new ProductService (mockMethod  as unknown as PrismaClient ,wssMock as unknown as WebsocketService, helperMock as unknown as Helper, NotificationService as unknown as NotificationService);
     }); // -> 초기 데이터 값
 
 
@@ -102,7 +102,7 @@ describe("ProductService",() => {
             title: "완전 대박",
             createdAt: new Date(),
             updatedAt: new Date(),
-            userId: 1,
+            ownerId: 1,
             productId: 1,
             articleId: 0,  
         } as CommentCreateDTO

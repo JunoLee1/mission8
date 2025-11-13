@@ -34,5 +34,13 @@ const mockMethod = {
         delete:jest.fn(),
         findMany:jest.fn()
     },
+    article : {
+        findUnique: jest.fn(),
+        create:jest.fn(),
+        update:jest.fn(),
+        delete:jest.fn(),
+        findMany:jest.fn()
+    }
+
 }
 export default mockMethod

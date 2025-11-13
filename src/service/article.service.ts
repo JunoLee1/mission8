@@ -5,9 +5,15 @@ import type {
 } from "../dto/article.dto.js";
 import prisma from "../lib/prisma.js";
 import { Helper } from "../helper/helper.js";
-
+import  { PrismaClient } from "@prisma/client";
 const helper = new Helper();
 export class ArticleService {
+  private prisma: PrismaClient; // ← 필드 선언
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma; //  ← 생성자에서 초기화
+  }
+
+
   async accessArticleList(query: ArticleQueryDTO) {
     const { page, take, title, content, keyword } = query;
     const skip = (page - 1) * take;
@@ -23,13 +29,11 @@ export class ArticleService {
       where: whereCondition,
       skip,
       take,
+      include: { comments: true},
       orderBy: { createdAt: "desc" },
     });
-    const result = articles.map((a) => ({
-      title: a.title,
-      content: a.content,
-    }));
-    return result;
+
+    return articles;
   }
 
   async accessArticle(id: number): Promise<ArticleDTO> {

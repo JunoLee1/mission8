@@ -3,31 +3,36 @@ import { CommentService } from '../src/service/comment.service.js';
 import { ProductService } from '../src/service/product.service.js';
 import { NotificationService } from '../src/service/notification.service.js';
 import mockProductData from './product.json' with { type: 'json' };
-import mockMethod from './__mock__/prisma.js';
 import mockData from './notification.json' with { type: 'json' };
 import { PrismaClient } from '@prisma/client';
 import { Helper } from '../src/helper/helper.js';
 import { WebsocketService } from '../src/socket/socket.js';
 import { WebSocketServer } from 'ws';
+import mockMethod from './__mock__/prisma.js';
 
 
-jest.mock('../src/lib/prisma', () => ({
-  __esModule: true,
-  default: mockMethod,
-}));
-
+jest.mock('../src/lib/prisma', () => {
+  const mockMethod = require('./__mock__/prisma.js').default; // 동적으로 require
+  return {
+    __esModule: true,
+    default: mockMethod,
+  };
+});
 
 const mockNotificationService = {
-  createAndGenerate: jest.fn().mockResolvedValue({ payload: {} }),
+  createAndGenerate: jest.fn().mockImplementation((senderId, receiverId, title, type, category, content) => {
+    wssMock.emitToUser(receiverId, "notification", { type, message: content });
+    return { payload: { senderId, receiverId, title, type, category } };
+  })
 };
-
-
 // ✅ Helper mock 설정
 const helperMock = {
   findProductById: jest.fn<Promise<{ id: number; name: string; description: string | null; price: number; ownerId: number; createdAt: Date; updatedAt: Date } | null>, [number]>(),
 };
 
 // ✅ Prisma mock
+
+//  product 관련 mock 
 
 const wssMock = { broadcast: jest.fn(), emitToUser: jest.fn(), };
 describe("NotificationService Integration", () => {
@@ -53,7 +58,6 @@ describe("NotificationService Integration", () => {
         }as unknown as WebSocketServer
     } as unknown as WebsocketService
 
-    mockNotificationService as any
     // ✅ 서비스 초기화
     notificationService = new NotificationService(
       mockMethod as unknown as PrismaClient,
@@ -63,7 +67,7 @@ describe("NotificationService Integration", () => {
       mockMethod as unknown as PrismaClient,
       wssMock,
       helperMock as unknown as Helper,
-      //mockNotificationService as any
+      mockNotificationService as unknown as NotificationService
     );
     commentService = new CommentService(
       mockMethod as unknown as PrismaClient,
@@ -108,7 +112,7 @@ describe("NotificationService Integration", () => {
     expect(result.payload).toHaveProperty("type", "NEW_COMMENT");
   });
   
-  
+  /// 좋아요를 누른 제품의 가격이 변동있는 경우 알림전송
   it("댓글 생성 시 알림 발생", async () => {
     const { alert1 } = mockData;
 
@@ -162,7 +166,12 @@ describe("NotificationService Integration", () => {
     }));
 
     // 제품 가격 변경 알림 호출
-   notificationService.emitToUser(2,);
+   notificationService.emitToUser(1,{
+      type: "CHANGED_PRICE",
+      productId: 1,
+      userId: 1,
+      message: `상품 가격이 1000 → 1200로 변경되었습니다.`,
+    } );
 
     // set return value
 
