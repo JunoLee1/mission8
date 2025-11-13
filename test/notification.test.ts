@@ -11,6 +11,12 @@ import { WebsocketService } from '../src/socket/socket.js';
 import { WebSocketServer } from 'ws';
 
 
+jest.mock('../src/lib/prisma', () => ({
+  __esModule: true,
+  default: mockMethod,
+}));
+
+
 const mockNotificationService = {
   createAndGenerate: jest.fn().mockResolvedValue({ payload: {} }),
 };
@@ -22,10 +28,6 @@ const helperMock = {
 };
 
 // ✅ Prisma mock
-jest.mock('../src/lib/prisma', () => ({
-  __esModule: true,
-  default: mockMethod,
-}));
 
 const wssMock = { broadcast: jest.fn(), emitToUser: jest.fn(), };
 describe("NotificationService Integration", () => {

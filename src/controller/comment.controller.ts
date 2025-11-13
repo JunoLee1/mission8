@@ -5,15 +5,17 @@ import type { CommentDTO, CommentPatchDTO } from "../dto/comment.dto.js";
 import prisma from "../lib/prisma.js";
 import { Server as HttpServer } from "http";
 import { WebsocketService } from "../socket/socket.js";
+import { WebSocketServer } from "ws";
 
 export class CommentController {
   private commentService: CommentService; // <- 초기화
   //private notificationService:NotificationService;
-  //private wss : WebsocketService;
+  private wss : WebsocketService;
   constructor(server: HttpServer) {
-    this.commentService = new CommentService(prisma); // <- 공용 데이터
+    this.wss = new WebsocketService( server )
+    this.commentService = new CommentService(prisma,this.wss); // <- 공용 데이터
     //this.notificationService = new NotificationService(prisma)
-    //this.wss = new WebsocketService( server )
+   
   }
 
   async accessCommentList(req: Request, res: Response, next: NextFunction) {

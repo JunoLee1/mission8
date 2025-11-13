@@ -2,13 +2,15 @@ import type { Request, Response, NextFunction } from "express";
 import prisma from "../lib/prisma.js";
 import { NotificationService } from "../service/notification.service.js";
 import type { WebsocketService } from "../socket/socket.js";
+import type { PrismaClient } from "@prisma/client";
 
 export class NotificationController {
   private wss: WebsocketService;
   private notificationService: NotificationService;
-  constructor(wss: WebsocketService) {
-    this.notificationService = new NotificationService(prisma);
+  constructor(prisma: PrismaClient ,wss: WebsocketService) {
     this.wss = wss;
+    this.notificationService = new NotificationService(prisma, wss);
+    
   }
   async accessAlerts(req: Request, res: Response, next: NextFunction) {
     const { page, type, take, category } = req.query;

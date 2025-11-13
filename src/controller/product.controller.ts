@@ -11,9 +11,9 @@ import { Helper } from "helper/helper.js";
 const helper = new Helper()
 export class ProductController {
   private productService: ProductService;
-  private wss: WebSocketServer
+  private wss: WebsocketService;
   constructor(server: HttpServer) {
-    this.wss = new WebSocketServer
+    this.wss = new WebsocketService( server );
     this.productService = new ProductService(prisma, this.wss, helper);
   }
   async accessListProduct(req: Request, res: Response, next: NextFunction) {
