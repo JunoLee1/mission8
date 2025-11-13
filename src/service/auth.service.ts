@@ -32,7 +32,6 @@ export class AuthService {
   }
   async register({ email, password, nickname }: RegisterDTO) {
     const validateUser = await this.findUser(email, nickname);
-    console.log(1234)
     if (validateUser)
       throw new Error("이메일이나 nickname 중복 되어져 있습니다");
     const userPassword = await bcrypt.hash(password, 10);

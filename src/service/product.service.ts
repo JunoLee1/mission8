@@ -107,9 +107,9 @@
       }
 
       const data: any = {
-        name,
-        description,
-        price,
+        name : name ?? product.name ,
+        description: description ?? product.description,
+        price : price ?? product.price,
         ownerId: userId,
         productTags: productTags?.length
           ? {

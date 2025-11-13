@@ -3,7 +3,6 @@ import { CommentService } from '../src/service/comment.service.js';
 import { ProductService } from '../src/service/product.service.js';
 import { NotificationService } from '../src/service/notification.service.js';
 import mockProductData from './product.json' with { type: 'json' };
-//import mockCommentData from './comment.json' with { type: 'json' };
 import mockMethod from './__mock__/prisma.js';
 import mockData from './notification.json' with { type: 'json' };
 import { PrismaClient } from '@prisma/client';

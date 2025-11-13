@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 // jest.mock은 import 뒤에도 동작 가능
 jest.mock("bcrypt", () => ({
   compare: jest.fn(async (pw, hash) => {
-   console.log("MOCK BCRYPT COMPARE: Returning TRUE")
    return true;
   }
 ),
