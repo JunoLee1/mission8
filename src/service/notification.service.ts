@@ -6,7 +6,6 @@ import type {
 } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 import type {
-  NotificationDTO,
   NotificationQuery,
 } from "../dto/notification.dto.js";
 import type { NotificationPayload } from "../socket/socket.js"; // WebSocketMessage 타입 포함
