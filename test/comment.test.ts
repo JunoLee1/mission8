@@ -1,13 +1,20 @@
 import { describe, expect, beforeAll, beforeEach, it } from "@jest/globals";
 import { CommentService } from "../src/service/comment.service.js";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type Notification } from "@prisma/client";
 import mockMethod from "./__mock__/prisma.js";
 import { WebsocketService } from "../src/socket/socket.js";
 import type { CommentCreateDTO, CommentDTO, CommentPatchDTO, CommentQueryDTO } from "../src/dto/comment.dto.js";
 import mockData from "./comment.json" with { type: "json" };
-import { mock } from "node:test";
 import prisma from "../src/lib/prisma.js";
-import { write } from "fs";
+import type { NotificationService } from "service/notification.service.js";
+import { notEqual } from "assert";
+
+
+const mockNotificationService: Partial<NotificationService> = {
+    createAndGenerate: jest.fn(), // ✅ jest.fn()으로 만들어야 mockRejectedValue 사용 가능
+};
+
+
 
 jest.mock("../src/lib/prisma", () => {
   const mockMethod = require("./__mock__/prisma.js").default;
@@ -18,21 +25,21 @@ jest.mock("../src/lib/prisma", () => {
 });
 describe("CommentService", () => {
 
+    let commentService: CommentService;
+    let wssMock: Partial<WebsocketService>;
     beforeEach(() => {
         jest.clearAllMocks()
-    })//-> 초기화
-
-    let commentService: CommentService;
-    beforeAll(() => {
-        let wssMock: Partial<WebsocketService>;
         wssMock = {
           broadcast: jest.fn(),
           emitToUser: jest.fn(),
         };
-        commentService = new CommentService(prisma as unknown as PrismaClient,wssMock as unknown as WebsocketService);
-    });
-
-
+        mockNotificationService.createAndGenerate = jest.fn().mockResolvedValue({
+  notification: {} as Notification,
+  payload: { type: "NEW_COMMENT", message: "Mock Notification" }
+});
+        commentService = new CommentService(prisma as unknown as PrismaClient,mockNotificationService as unknown as NotificationService, wssMock as unknown as WebsocketService,);
+        //mockNotificationService.createAndGenerate.mockClear(); 
+    })//-> 초기화
     it("accesses a comment successfully", async () => {
         // 테스트 로직 작성
         // 모의 데이터 설정
@@ -323,12 +330,13 @@ describe("CommentService", () => {
         const newComment: CommentCreateDTO = {
             id: 3,
             content: "This is a new comment",
+            createdAt:new Date(),
+            updatedAt:new Date,
             type: "ARTICLE",
             title: "New Comment Title",
             ownerId: 2,
             productId: 0,
             articleId: 1,
-
         };
         
         // 예상 리턴값 작성
@@ -358,12 +366,59 @@ describe("CommentService", () => {
     })
 
 
-    //it("fail to create a comment", async () => {
-         // 테스트 로직 작성
+    it("fail to create a comment", async () => {
+        // 테스트 로직 작성
         // 모의 데이터 설정
+        const userId = 2
+        const nickname= "jin"
+        const receiverId = 1
+       
+         const newComment: CommentCreateDTO = {
+            id: 3,
+            content: "This is a new comment",
+            type: "ARTICLE",
+            title: "New Comment Title",
+            ownerId: userId,
+            createdAt:new Date(),
+            updatedAt:new Date(),
+            productId: 0,
+            articleId: 1,
+        };
+
+         
+
+        const notificationError = new Error("Notification Service Failed");
         // 예상 리턴값 작성
-        // 서비스 메서드 호출
-        // 모의 함수 호출 여부 및 인자 검증
-        // 결과 검증
-    //})
+
+        mockMethod.article.findUnique.mockResolvedValue({
+            id: 1,
+            ownerId: receiverId,
+            title: "Test Article",
+        });
+         mockMethod.comment.create.mockResolvedValue(newComment);
+(mockNotificationService.createAndGenerate as jest.Mock).mockRejectedValue(
+    new Error("Notification Service Failed")
+);
+  // 서비스 메서드 호출 시 Promise 그대로 전달
+  await expect(
+    commentService.createComment(userId, nickname, newComment)
+  ).rejects.toThrow("Notification Service Failed");
+
+       expect( mockMethod.comment.create).toHaveBeenCalledTimes(1);
+       expect(mockMethod.comment.create).toHaveBeenCalledWith(
+  expect.objectContaining({
+    data: expect.objectContaining({
+      content: newComment.content,
+      title: newComment.title,
+      type: newComment.type,
+      article: { connect: { id: newComment.articleId } }
+    })
+  })
+);
+        // 2. NotificationService 호출은 시도되었어야 합니다 (오류 발생 지점)
+        expect(mockNotificationService.createAndGenerate).toHaveBeenCalledTimes(1);
+        
+        // 3. WebSocket Emit은 호출되지 않아야 합니다 (NotificationService 실패로 도달하지 못함)
+        expect(wssMock.emitToUser).toHaveBeenCalledTimes(0); 
+  })
 })

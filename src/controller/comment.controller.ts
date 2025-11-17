@@ -4,14 +4,19 @@ import type { CommentDTO, CommentPatchDTO } from "../dto/comment.dto.js";
 import prisma from "../lib/prisma.js";
 import { Server as HttpServer } from "http";
 import { WebsocketService } from "../socket/socket.js";
+import  { NotificationService } from "service/notification.service.js";
+import type { PrismaClient } from "@prisma/client";
 
 export class CommentController {
   private commentService: CommentService; // <- 초기화
-  //private notificationService:NotificationService;
+  private notificationService:NotificationService;
   private wss: WebsocketService;
+  private prisma :PrismaClient
   constructor(server: HttpServer) {
     this.wss = new WebsocketService(server);
-    this.commentService = new CommentService(prisma, this.wss); // <- 공용 데이터
+    this.prisma = prisma
+    this.notificationService = new NotificationService(this.prisma, this.wss)
+    this.commentService = new CommentService(prisma, this.notificationService, this.wss,); // <- 공용 데이터
     //this.notificationService = new NotificationService(prisma)
   }
 
@@ -71,6 +76,7 @@ export class CommentController {
       };
       const nickname = req.user?.nickname;
       if (!nickname) throw new Error("해당 닉네임 존재 하지 않습니다");
+      console.log("nickname:", nickname)
       const comment = await this.commentService.createComment(
         userId,
         nickname,

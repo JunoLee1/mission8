@@ -67,7 +67,7 @@ export class ArticleService {
             ? {
                 create: comments.map((c) => ({
                   content: c.content,
-                  userId: c.userId,
+                  userId: c.ownerId,
                 })),
               }
             : {},

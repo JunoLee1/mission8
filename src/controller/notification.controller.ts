@@ -90,21 +90,22 @@ export class NotificationController {
         type: safeType ?? "UNREAD",
         createdAt,
       };
+      if (!req.user?.nickname) throw new Error("해당 유저 존재하지않습니다");
       const notification = await this.notificationService.createNotification(
         elements.senderId,
         elements.receiverId,
         elements.content,
         elements.type,
-        elements.category
+        elements.category,
+        req.user.nickname
       );
-      if (!req.user?.nickname) throw new Error("해당 유저 존재하지않습니다");
       const payload = await this.notificationService.generatePayload(
         safeCategory ?? "NEW_COMMENT",
         userId,
         content,
         articleId,
         productId,
-        req.user?.nickname
+        req.user.nickname
       );
       this.wss.broadcast({
         type: "notification",

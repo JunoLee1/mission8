@@ -13,12 +13,14 @@ import WebSocket, { WebSocketServer } from "ws";
 
 import type { WebsocketService } from "../socket/socket.js";
 export class NotificationService {
+  
   private prisma: PrismaClient;
   private wss: WebsocketService
   constructor(prisma: PrismaClient, wss : WebsocketService) {
     this.prisma = prisma;
     this.wss  = wss
   }
+
 
   async accessAlerts(query: NotificationQuery) {
     const { page, take, category, type } = query;
@@ -43,7 +45,8 @@ export class NotificationService {
     receiverId: number,
     content: string,
     type: NotificationTypes,
-    category: NotificationCategory
+    category: NotificationCategory,
+    nickname:string,
   ): Promise<Notification> {
     const data = {
       senderId,
@@ -51,7 +54,9 @@ export class NotificationService {
       content,
       type,
       category,
-    };
+      nickname
+    }
+    console.log("nickname:", nickname)
     return this.prisma.notification.create({ data });
   }
   async createAndGenerate(
@@ -65,25 +70,36 @@ export class NotificationService {
     nickname?: string,
     oldPrice?: number,
     newPrice?: number
+    
   ): Promise<{ notification: Notification; payload: NotificationPayload }> {
+      
+    console.log("senderId:",senderId)
+     const commenter = await this.prisma.user.findUnique({
+        where: { id: senderId }
+      });
+    if (!commenter) throw new Error("Commenter not found");
+    
+    console.log("receiverId", receiverId)
+  const finalNickname = nickname ?? commenter.nickname ?? ""
     const notification = await this.createNotification(
       senderId,
       receiverId,
       content,
       type,
-      category
+      category,
+      finalNickname
     );
+    console.log(finalNickname)
     let payload: NotificationPayload;
     if (category === "CHANGED_PRICE") {
       payload = {
         type: "CHANGED_PRICE",
         productId: productId!,
         userId: senderId,
-
         message: `상품 가격이 ${oldPrice} → ${newPrice}로 변경되었습니다.`,
       };
     } else {
-      payload = this.generatePayload(
+      payload = await this.generatePayload(
         category,
         senderId,
         content,
@@ -92,24 +108,30 @@ export class NotificationService {
         nickname
       );
     }
+    console.log(notification)
+    console.log(notification, payload)
     return { notification, payload };
   }
 
-  generatePayload(
+ async generatePayload(
     category: "NEW_COMMENT" | "NEW_LIKE" | "CHANGED_PRICE",
     userId: number,
     content: string,
     articleId?: number,
     productId?: number,
     nickname?: string
-  ): NotificationPayload {
+  ): Promise<NotificationPayload>{
+      const user = !nickname ? await this.prisma.user.findUnique({ where: { id: userId } }) : null;
+  const finalNickname = nickname ?? user?.nickname ?? "unknown";
+
+
     switch (category) {
       case "NEW_COMMENT":
         return {
           type: "NEW_COMMENT",
           articleId: articleId ?? 0,
           productId: productId ?? 0,
-          commenter: nickname ?? "unknown",
+          nickname: finalNickname,
           userId,
           message: content,
         };

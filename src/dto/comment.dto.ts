@@ -33,8 +33,8 @@ export interface CommentCreateDTO {
   title: string;
   type: "MARKET" | "ARTICLE";
   content: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
   ownerId: number;
   productId: number ;
   articleId: number;

@@ -1,6 +1,3 @@
-import { create } from "domain"
-import { no } from "zod/locales"
-
 const mockMethod = {
     user:{
         findUnique: jest.fn(),
