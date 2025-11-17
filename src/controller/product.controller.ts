@@ -7,14 +7,15 @@ import { Server as HttpServer } from "http";
 import { WebsocketService } from "../socket/socket.js";
 import {WebSocketServer} from "ws";
 import { Helper } from "helper/helper.js";
+import { NotificationService } from "service/notification.service.js";
 
 const helper = new Helper()
 export class ProductController {
   private productService: ProductService;
-  private wss: WebSocketServer
+  private wss: WebsocketService;
   constructor(server: HttpServer) {
-    this.wss = new WebSocketServer
-    this.productService = new ProductService(prisma, this.wss, helper);
+    this.wss = new WebsocketService( server );
+    this.productService = new ProductService(prisma, this.wss, helper, new NotificationService(prisma, this.wss));
   }
   async accessListProduct(req: Request, res: Response, next: NextFunction) {
     try {

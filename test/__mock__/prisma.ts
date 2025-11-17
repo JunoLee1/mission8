@@ -1,6 +1,3 @@
-import { create } from "domain"
-import { no } from "zod/locales"
-
 const mockMethod = {
     user:{
         findUnique: jest.fn(),
@@ -34,5 +31,13 @@ const mockMethod = {
         delete:jest.fn(),
         findMany:jest.fn()
     },
+    article : {
+        findUnique: jest.fn(),
+        create:jest.fn(),
+        update:jest.fn(),
+        delete:jest.fn(),
+        findMany:jest.fn()
+    }
+
 }
 export default mockMethod

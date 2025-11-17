@@ -12,7 +12,7 @@
     private notificationService: NotificationService;
     private wss: WebsocketService;
     private helper: Helper
-    constructor(prismaClient: PrismaClient, wss: WebsocketService, helper:Helper) {
+    constructor(prismaClient: PrismaClient, wss: WebsocketService, helper:Helper, notificationService: NotificationService) {
       this.prisma = prismaClient; //  ← 생성자에서 초기화
       this.wss = wss;
       this.notificationService = new NotificationService(this.prisma, this.wss);
@@ -56,7 +56,7 @@
         ),
         comments: p.comment.map((c) =>({
           id: c.id,
-          userId: c.userId,
+          userId: c.ownerId,
           content:c.content
         })),
       }));

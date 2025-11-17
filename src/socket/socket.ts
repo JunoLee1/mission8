@@ -9,7 +9,7 @@ interface PongMessage {
   type: "pong";
 }
 
-interface NotificationMessage {
+export interface NotificationMessage {
   type: "notification";
   payload: NotificationPayload;
 }
@@ -26,7 +26,7 @@ interface NewCommentPayload {
   type: "NEW_COMMENT";
   articleId?: number;
   productId?: number;
-  commenter: string;
+  nickname: string;
   userId: number;
   message: string;
 }

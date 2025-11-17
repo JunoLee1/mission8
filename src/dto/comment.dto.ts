@@ -1,12 +1,11 @@
 export interface CommentDTO {
   id?: number;
-  name: string;
   title: string;
   type: "MARKET" | "ARTICLE";
   content: string;
   createdAt?: Date;
   updatedAt?: Date;
-  userId: number;
+  ownerId: number;
   productId: number;
   articleId: number;
 }
@@ -20,11 +19,10 @@ export interface CommentQueryDTO {
 
 export interface CommentPatchDTO {
   id: number;
-  name?: string;
   title?: string;
   type?: "MARKET" | "ARTICLE";
   content?: string;
-  userId: number;
+  ownerId: number;
   productId?: number;
   articleId?: number;
 }
@@ -32,13 +30,12 @@ export interface CommentPatchDTO {
 
 export interface CommentCreateDTO {
   id: number;
-  name: string;
   title: string;
   type: "MARKET" | "ARTICLE";
   content: string;
   createdAt: Date;
   updatedAt: Date;
-  userId: number;
+  ownerId: number;
   productId: number ;
   articleId: number;
 }

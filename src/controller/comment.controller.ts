@@ -1,19 +1,23 @@
 import { CommentService } from "../service/comment.service.js";
-import { NotificationService } from "../service/notification.service.js";
 import type { Request, Response, NextFunction } from "express";
 import type { CommentDTO, CommentPatchDTO } from "../dto/comment.dto.js";
 import prisma from "../lib/prisma.js";
 import { Server as HttpServer } from "http";
 import { WebsocketService } from "../socket/socket.js";
+import  { NotificationService } from "service/notification.service.js";
+import type { PrismaClient } from "@prisma/client";
 
 export class CommentController {
   private commentService: CommentService; // <- 초기화
-  //private notificationService:NotificationService;
-  //private wss : WebsocketService;
+  private notificationService:NotificationService;
+  private wss: WebsocketService;
+  private prisma :PrismaClient
   constructor(server: HttpServer) {
-    this.commentService = new CommentService(prisma); // <- 공용 데이터
+    this.wss = new WebsocketService(server);
+    this.prisma = prisma
+    this.notificationService = new NotificationService(this.prisma, this.wss)
+    this.commentService = new CommentService(prisma, this.notificationService, this.wss,); // <- 공용 데이터
     //this.notificationService = new NotificationService(prisma)
-    //this.wss = new WebsocketService( server )
   }
 
   async accessCommentList(req: Request, res: Response, next: NextFunction) {
@@ -39,6 +43,7 @@ export class CommentController {
 
   async accessComment(req: Request, res: Response, next: NextFunction) {
     try {
+      console.log("accessComment 호출됨");
       const commentId = Number(req.params.id);
       const result = await this.commentService.accessComment(commentId);
 
@@ -55,22 +60,25 @@ export class CommentController {
       const userId = Number(req.user?.id);
       if (!userId) throw new Error("unauthorized"); // 401
 
-      const { content, title, name, type, productId, articleId, id } = req.body;
-      if (!productId && !articleId)
-        throw new Error("productId 또는 articleId 중 하나는 반드시 필요합니다");
+      const { content, title, type, productId, articleId, ownerId } = req.body;
+      if (type === "MARKET" && !productId)
+        throw new Error("MARKET 댓글은 productId가 필요합니다");
+      if (type === "ARTICLE" && !articleId)
+        throw new Error("ARTICLE 댓글은 articleId가 필요합니다");
 
       const elements: CommentDTO = {
         type: type === "MARKET" || type === "ARTICLE" ? type : undefined,
-        name: String(name ?? ""),
         content: String(content ?? ""),
         title: String(title ?? ""),
-        userId,
+        ownerId: userId,
         productId,
         articleId,
       };
       const nickname = req.user?.nickname;
       if (!nickname) throw new Error("해당 닉네임 존재 하지 않습니다");
+      console.log("nickname:", nickname)
       const comment = await this.commentService.createComment(
+        userId,
         nickname,
         elements
       );
@@ -93,7 +101,7 @@ export class CommentController {
         id: commentId,
         content: String(content ?? ""),
         title: String(title ?? ""),
-        userId,
+        ownerId:userId
       };
       const result = await this.commentService.modifyComment(userId, elements);
       res.status(200).json({

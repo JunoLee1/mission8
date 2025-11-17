@@ -2,13 +2,15 @@ import type { Request, Response, NextFunction } from "express";
 import prisma from "../lib/prisma.js";
 import { NotificationService } from "../service/notification.service.js";
 import type { WebsocketService } from "../socket/socket.js";
+import type { PrismaClient } from "@prisma/client";
 
 export class NotificationController {
   private wss: WebsocketService;
   private notificationService: NotificationService;
-  constructor(wss: WebsocketService) {
-    this.notificationService = new NotificationService(prisma);
+  constructor(prisma: PrismaClient ,wss: WebsocketService) {
     this.wss = wss;
+    this.notificationService = new NotificationService(prisma, wss);
+    
   }
   async accessAlerts(req: Request, res: Response, next: NextFunction) {
     const { page, type, take, category } = req.query;
@@ -88,21 +90,22 @@ export class NotificationController {
         type: safeType ?? "UNREAD",
         createdAt,
       };
+      if (!req.user?.nickname) throw new Error("해당 유저 존재하지않습니다");
       const notification = await this.notificationService.createNotification(
         elements.senderId,
         elements.receiverId,
         elements.content,
         elements.type,
-        elements.category
+        elements.category,
+        req.user.nickname
       );
-      if (!req.user?.nickname) throw new Error("해당 유저 존재하지않습니다");
       const payload = await this.notificationService.generatePayload(
         safeCategory ?? "NEW_COMMENT",
         userId,
         content,
         articleId,
         productId,
-        req.user?.nickname
+        req.user.nickname
       );
       this.wss.broadcast({
         type: "notification",
