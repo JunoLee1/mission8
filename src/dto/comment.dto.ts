@@ -5,7 +5,7 @@ export interface CommentDTO {
   content: string;
   createdAt?: Date;
   updatedAt?: Date;
-  ownerId: number;
+  userId: number;
   productId: number;
   articleId: number;
 }
@@ -35,7 +35,7 @@ export interface CommentCreateDTO {
   content: string;
   createdAt: Date;
   updatedAt: Date;
-  ownerId: number;
+  userId: number;
   productId: number ;
   articleId: number;
 }

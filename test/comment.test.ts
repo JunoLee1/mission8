@@ -334,7 +334,7 @@ describe("CommentService", () => {
             updatedAt:new Date,
             type: "ARTICLE",
             title: "New Comment Title",
-            ownerId: 2,
+            userId: 2,
             productId: 0,
             articleId: 1,
         };
@@ -378,7 +378,7 @@ describe("CommentService", () => {
             content: "This is a new comment",
             type: "ARTICLE",
             title: "New Comment Title",
-            ownerId: userId,
+            userId:userId,
             createdAt:new Date(),
             updatedAt:new Date(),
             productId: 0,

@@ -120,7 +120,8 @@ describe("ProductService",() => {
 
     it ("created a product successfully", async() => {
         // set return value
-        const mockCommentDTO ={
+        const userId = 1
+        const mockCommentDTO:CommentCreateDTO ={
             id: 1,
             name: "UserNickname",   // 유저 닉네임
             content: "This is a test comment",
@@ -128,7 +129,7 @@ describe("ProductService",() => {
             title: "완전 대박",
             createdAt: new Date("2025-01-25"),
             updatedAt: new Date("2025-01-25"),
-            ownerId: 1,
+            ownerId:userId,
             productId: 1,
             articleId: 0,  
         } as CommentCreateDTO
@@ -141,6 +142,7 @@ describe("ProductService",() => {
             ownerId:1,
             comment:[mockCommentDTO],
             productTags: [1], // 태그 ID
+            productImage:"example.jpg"
         };
         
         mockMethod.user.findUnique.mockResolvedValue({ id: 1 })
@@ -169,6 +171,7 @@ describe("ProductService",() => {
             price: 10000,
             ownerId:1,
             productTags: [1], // 태그 ID
+            productImage:"example.jepg"
         };
         // set return value
         helperMock.findProductById.mockResolvedValue({

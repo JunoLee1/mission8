@@ -13,6 +13,7 @@ import {
 } from "../middleWare/validateMiddle.js";
 import passport from "passport";
 import type { Server as HttpServer } from "http";
+import {upload} from "../middleWare/upload.js"
 
 //모든 사람이 게시글을 조회 할수 있음
 export default function createdAarticleRouter(server: HttpServer) {
@@ -40,7 +41,7 @@ export default function createdAarticleRouter(server: HttpServer) {
   router.post(
     "/",
     passport.authenticate("local", { session: false }),
-    //upload.single("articleImage"),
+    upload.single("articleImage"),
     validateBody(bodySchema),
     async (req: Request, res: Response, next: NextFunction) => {
       await articleController.createArticle(req, res, next);
@@ -50,7 +51,7 @@ export default function createdAarticleRouter(server: HttpServer) {
   router.patch(
     "/:id",
     passport.authenticate("local", { session: false }),
-    //upload.single("articleImage"),
+    upload.single("articleImage"),
     validateParam(paramsSchema),
     validateBody(bodySchema),
     async (req: Request, res: Response, next: NextFunction) => {

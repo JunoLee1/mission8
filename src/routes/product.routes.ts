@@ -20,6 +20,8 @@ import { WebsocketService } from "../socket/socket.js";
 import { Helper } from "../helper/helper.js";
 import { NotificationService } from "../service/notification.service.js";
 import prisma from "../lib/prisma.js"
+import {upload} from "../middleWare/upload.js"
+
 
 export default function createProductRouter(server: HttpServer) {
   const router = express.Router();
@@ -62,7 +64,7 @@ export default function createProductRouter(server: HttpServer) {
   router.patch(
     "/:id",
     passport.authenticate("local", { session: false }),
-    //upload.single("productImage"),
+    upload.single("productImage"),
     validateParam(productIdSchema),
     validateBody(PatchProductSchema),
     async (req: Request, res: Response, next: NextFunction) => {

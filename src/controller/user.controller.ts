@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { UserService } from "../service/user.service.js";
 import type { ChangePasswordDTO } from "../dto/user.dto.js";
+import { uploadToS3 } from "../middleWare/upload.js";
 
 export class UserController {
   private userService: UserService;
@@ -42,18 +43,23 @@ export class UserController {
   async modifyUserInfo(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = Number(req.user?.id);
+      let imageUrl ;
 
+      if (req.file){
+        imageUrl = await uploadToS3(req.file, "profile")
+      }
       const { nickname, email } = req.body as {
         nickname: string;
         email: string;
       };
 
       if (!userId) throw new Error("Unauthorized");
-
+      if(!imageUrl) throw new Error("image 필수")
       const result = await this.userService.modifyUserInfo({
         id: userId,
         nickname,
         email,
+        imageUrl
       });
 
       res.status(200).json({
@@ -79,4 +85,5 @@ export class UserController {
       next(error);
     }
   }
+
 }

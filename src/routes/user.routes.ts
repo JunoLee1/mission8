@@ -7,6 +7,8 @@ import {
   changePasswordSchema,
 } from "../validation/user.validation.js";
 import { validateBody } from "../middleWare/validateMiddle.js";
+import {upload} from "../middleWare/upload.js"
+
 
 const router = express.Router();
 const userController = new UserController();
@@ -27,8 +29,8 @@ router.get("/me", async (req: Request, res: Response, next: NextFunction) => {
 // 유저 정보 변경
 router.patch(
   "/me",
+  upload.single("profileImage"),
   validateBody(updateUserInfoSchema),
-  //upload.single("profileImage")
   async (req: Request, res: Response, next: NextFunction) => {
     await userController.modifyUserInfo(req, res, next);
   }
