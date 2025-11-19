@@ -27,6 +27,7 @@ export default function createAuthRouter(server:HttpServer) {
   // 회원가입 API
   router.post(
     "/register",
+    //upload.single("profileImage"),
     validateBody(authRegisterSchema),
     async (req: Request, res: Response, next: NextFunction) => {
       await authController.register(req, res, next);

@@ -28,6 +28,7 @@ router.get("/me", async (req: Request, res: Response, next: NextFunction) => {
 router.patch(
   "/me",
   validateBody(updateUserInfoSchema),
+  //upload.single("profileImage")
   async (req: Request, res: Response, next: NextFunction) => {
     await userController.modifyUserInfo(req, res, next);
   }

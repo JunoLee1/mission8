@@ -40,6 +40,7 @@ export default function createdAarticleRouter(server: HttpServer) {
   router.post(
     "/",
     passport.authenticate("local", { session: false }),
+    //upload.single("articleImage"),
     validateBody(bodySchema),
     async (req: Request, res: Response, next: NextFunction) => {
       await articleController.createArticle(req, res, next);
@@ -49,6 +50,7 @@ export default function createdAarticleRouter(server: HttpServer) {
   router.patch(
     "/:id",
     passport.authenticate("local", { session: false }),
+    //upload.single("articleImage"),
     validateParam(paramsSchema),
     validateBody(bodySchema),
     async (req: Request, res: Response, next: NextFunction) => {
