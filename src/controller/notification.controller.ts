@@ -5,13 +5,8 @@ import type { WebsocketService } from "../socket/socket.js";
 import type { PrismaClient } from "@prisma/client";
 
 export class NotificationController {
-  private wss: WebsocketService;
-  private notificationService: NotificationService;
-  constructor(prisma: PrismaClient ,wss: WebsocketService) {
-    this.wss = wss;
-    this.notificationService = new NotificationService(prisma, wss);
-    
-  }
+  
+  constructor(private notificationService: NotificationService) {}
   async accessAlerts(req: Request, res: Response, next: NextFunction) {
     const { page, type, take, category } = req.query;
     let safeType: "UNREAD" | "IS_READ" | undefined = undefined;
@@ -106,11 +101,8 @@ export class NotificationController {
         articleId,
         productId,
         req.user.nickname
-      );
-      this.wss.broadcast({
-        type: "notification",
-        payload,
-      });
+      )
+      this.notificationService.emitToUser(userId,payload)
       res.status(201).json(notification);
     } catch (error) {
       next(error);

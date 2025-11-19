@@ -2,6 +2,7 @@ import prisma from "../lib/prisma.js";
 
 export class Helper {
   async findProductById(id: number) {
+    console.log(123)
     const result = await prisma.product.findUnique({
       where: { id },
     });

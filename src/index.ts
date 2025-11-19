@@ -10,6 +10,7 @@ export default function initializeRoutes(server: HttpServer) {
   app.use(cors());
 
   // server 인자를 전달해야 함
+  console.log(123)
   app.use("/api", createApiRouter(server));
 
   return app;

@@ -8,7 +8,12 @@ import type { productDTO } from '../src/dto/product.dto.js';
 import type { CommentCreateDTO } from '../src/dto/comment.dto.js';
 import { Helper } from '../src/helper/helper.js';
 import { NotificationService } from '../src/service/notification.service.js';
+
 const helper = new Helper()
+
+
+let wssMock: Partial<WebsocketService>;
+
 const helperMock: {
   findProductById: jest.Mock<
     Promise<{ id: number; name: string; description: string | null; price: number; ownerId: number; createdAt: Date; updatedAt: Date } | null>,
@@ -22,23 +27,33 @@ jest.mock('../src/lib/prisma', () => ({
   default: mockMethod,
 }));
 
+
+
 describe("ProductService",() => {
     let productService :ProductService;
     let wssMock: Partial<WebsocketService>;
+    const prismaMock = mockMethod as any;
+    
     helperMock
 
     beforeEach(() => {
         jest.clearAllMocks()
     })//-> 초기화
 
+    
     beforeAll(async() => {
     wssMock ={
-          broadcast: jest.fn(),
-        //emit: jest.fn(), // emit도 mock해주는게 안전
+          //broadcast: jest.fn(),
+        emitToUser: jest.fn(), // emit도 mock해주는게 안전
     }
-    helper 
     helperMock.findProductById = jest.fn();
-    productService = new ProductService (mockMethod  as unknown as PrismaClient ,wssMock as unknown as WebsocketService, helperMock as unknown as Helper, NotificationService as unknown as NotificationService);
+
+    const notificationServiceInstance = new NotificationService(
+        prismaMock as PrismaClient,
+        wssMock as WebsocketService
+    ); 
+    
+    productService = new ProductService (prismaMock, wssMock as WebsocketService, helperMock as unknown as Helper, notificationServiceInstance);
     }); // -> 초기 데이터 값
 
 
@@ -79,17 +94,28 @@ describe("ProductService",() => {
        // debug: confirm mock is set
        const { product1 } = mockData;
 
+       const productMock = {
+            ...product1,
+            createdAt: new Date(product1.createdAt),
+            updatedAt: new Date(product1.updatedAt),
+            comment: product1.comment.map(c => ({
+                ...c,
+                createdAt: new Date(c.createdAt),
+                updatedAt: new Date(c.updatedAt)
+            }))
+        };
        // set return value
-        mockMethod.product.findUnique.mockResolvedValue(product1);
-
+        ///mockMethod.product.findUnique.mockResolvedValue(productMock);
+        helperMock.findProductById.mockResolvedValue(productMock); // <- 이 한 줄이면 충분
+        
         //call service function
-        const result =await  productService.accessProduct(1)
+        const result = await productService.accessProduct(1)
 
         // validation
-        expect(mockMethod.product.findUnique).toHaveBeenCalledTimes(1)
+        expect( helperMock.findProductById).toHaveBeenCalledTimes(1)
 
        // debug result
-       expect(result).toEqual(product1);
+        expect(result).toEqual(productMock);
     })
 
     it ("created a product successfully", async() => {
@@ -144,7 +170,6 @@ describe("ProductService",() => {
             ownerId:1,
             productTags: [1], // 태그 ID
         };
-    
         // set return value
         helperMock.findProductById.mockResolvedValue({
             id: 1,

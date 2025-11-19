@@ -14,10 +14,21 @@ import {
 } from "../middleWare/validateMiddle.js";
 import passport from "passport";
 import type { Server as HttpServer } from "http";
+import likeRouter from "./like.routes/like.routes.js"
+import { ProductService } from "../service/product.service.js";
+import { WebsocketService } from "../socket/socket.js";
+import { Helper } from "../helper/helper.js";
+import { NotificationService } from "../service/notification.service.js";
+import prisma from "../lib/prisma.js"
 
 export default function createProductRouter(server: HttpServer) {
-  const productController = new ProductController(server);
   const router = express.Router();
+  const wss = new WebsocketService(server)
+  const helper  = new Helper();
+  const notificationService = new NotificationService(prisma,wss)
+  const productService = new ProductService(prisma, wss, helper,notificationService)
+  const productController = new ProductController(productService);
+  
   // API : 상품 데이터 리스트 조회
   router.get(
     "/",
@@ -65,6 +76,7 @@ export default function createProductRouter(server: HttpServer) {
       await productController.deleteProduct(req, res, next);
     }
   );
-
+  // API :상품 좋아요 생성
+   router.use("/:id/likes",likeRouter )
   return router; // router 만 내보내기
 }

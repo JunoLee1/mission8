@@ -47,7 +47,6 @@ export class CommentService {
       type === "MARKET"
         ? { product: { connect: { id: productId } } }
         : { article: { connect: { id: articleId } } };
-    console.log(nickname);
     const result = await this.prisma.comment.create({
       data: {
         content,
@@ -77,7 +76,7 @@ export class CommentService {
       if (!article) throw new Error("해당 게시글이 존재 하지 않습니다");
       targetId = article.ownerId;
     }
-    console.log("targetId:", targetId);
+    
     if (targetId === undefined) {
       throw new Error("댓글 대상이 존재하지 않습니다");
     }
@@ -94,7 +93,6 @@ export class CommentService {
           type === "MARKET" ? productId : undefined, // productId
           nickname
         );
-        console.log( notification, payload )
       this.wss.emitToUser(targetId, "NEW_COMMENT", {
         type: "NEW_COMMENT",
         payload,
