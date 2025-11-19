@@ -129,7 +129,7 @@ describe("ProductService",() => {
             title: "완전 대박",
             createdAt: new Date("2025-01-25"),
             updatedAt: new Date("2025-01-25"),
-            ownerId:userId,
+            userId:userId,
             productId: 1,
             articleId: 0,  
         } as CommentCreateDTO
