@@ -1,3 +1,4 @@
+
 import { describe, expect, beforeEach, it, jest } from "@jest/globals";
 import { CommentService } from "../src/service/comment.service.js";
 // Notification 타입을 사용하기 위해 명시적으로 가져옵니다.
@@ -7,16 +8,15 @@ import {
   type NotificationPayload,
 } from "../src/socket/socket.js";
 import mockMethod from "./__mock__/prisma.js";
+
+jest.mock('../src/lib/prisma', () => {
+  const mockMethod = require('./__mock__/prisma.js'); // require로 가져오기
+  return { __esModule: true, default: mockMethod };
+});
+
 import type { CommentCreateDTO } from "../src/dto/comment.dto.js";
 import { NotificationService } from "../src/service/notification.service.js";
 
-jest.mock("../src/lib/prisma", () => {
-  const mockMethod = require("./__mock__/prisma.js").default;
-  return {
-    __esModule: true,
-    default: mockMethod,
-  };
-});
 
 // ✅ createAndGenerate가 반환할 객체의 타입을 정의합니다.
 type NotificationResult = {
@@ -78,7 +78,7 @@ describe("notification service", () => {
       updatedAt: new Date("2025-01-27"),
       productId: 0,
       articleId: 1,
-      ownerId: senderId,
+      userId: senderId,
     };
 
     // 알림 페이로드 정의
@@ -165,7 +165,7 @@ describe("notification service", () => {
             content: "Notification Fail Test",
             type: "ARTICLE",
             title: "Notif Fail Title",
-            ownerId:userId,
+            userId:userId,
             updatedAt:new Date(),
             createdAt:new Date(),
             productId: 0,

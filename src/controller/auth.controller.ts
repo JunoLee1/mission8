@@ -4,6 +4,7 @@ import { AuthService } from "../service/auth.service.js";
 import type { RegisterDTO, LoginDTO } from "../dto/auth.dto.js";
 import { WebsocketService } from "../socket/socket.js";
 import prisma from "../lib/prisma.js";
+import { uploadToS3 } from "../middleWare/upload.js";
 
 export class AuthController {
   private wss: WebsocketService;
@@ -15,13 +16,20 @@ export class AuthController {
 
   async register(req: Request, res: Response, next: NextFunction) {
     try {
+      let imageUrl;
       const { email, nickname, password } = req.body as RegisterDTO;
+
+       if(req.file){
+        imageUrl = await uploadToS3(req.file,"profile")
+      }
+      if(!imageUrl) throw new Error("image 필수")
       const newUser = await this.authService.register({
         email,
         nickname,
         password,
+        imageUrl
       });
-
+     
       return res.status(201).json({
         data: newUser,
       });
@@ -34,7 +42,7 @@ export class AuthController {
   async login(req: Request, res: Response, next: NextFunction) {
     try {
       const { email, password } = req.body as LoginDTO; // req.query는 스스로 타입 가지고 있다
-
+  
       if (!req.user || !req.user.id || !req.user.email) {
         throw new Error();
       }

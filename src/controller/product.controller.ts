@@ -1,13 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
 import { ProductService } from "../service/product.service.js";
 import type { ProductQueryDTO } from "../dto/product.dto.js";
-import prisma from "../lib/prisma.js";
-import type { Comment, ProductTag } from "@prisma/client";
-import { Server as HttpServer } from "http";
-import { WebsocketService } from "../socket/socket.js";
-import { WebSocketServer } from "ws";
 import { Helper } from "../helper/helper.js";
-import { NotificationService } from "service/notification.service.js";
+//import { NotificationService } from "../service/notification.service.js";
+import { uploadToS3 } from "../middleWare/upload.js";
 
 const helper = new Helper();
 export class ProductController {
@@ -38,7 +34,13 @@ export class ProductController {
 
   async createProduct(req: Request, res: Response, next: NextFunction) {
     try {
-      const { name, description, price, ownerId, tags } = req.body as {
+      let imageUrl;
+
+      if(req.file){
+        imageUrl = await uploadToS3(req.file, "profile")
+      }
+      if (!imageUrl) throw new Error("image 필수");
+      const { name, description, price, ownerId, tags} = req.body as {
         name: string;
         description: string;
         price: number;
@@ -56,6 +58,7 @@ export class ProductController {
         price,
         ownerId,
         productTags: tagIds,
+        productImage: imageUrl
       });
       res.status(200).json({ data: result });
     } catch (error) {
@@ -65,8 +68,14 @@ export class ProductController {
 
   async modifyProduct(req: Request, res: Response, next: NextFunction) {
     try {
+      let imageUrl;
+      if(req.file){
+         imageUrl = await uploadToS3(req.file, "product")
+      }
+      if (!imageUrl) throw new Error("image 필수");
+
       const { id } = req.params; // productId
-      const { name, description, price, ownerId, tags } = req.body as {
+      const { name, description, price, ownerId, tags, } = req.body as {
         name: string;
         description: string;
         price: number;
@@ -86,6 +95,7 @@ export class ProductController {
         price,
         ownerId,
         productTags: tagIds,
+        productImage:imageUrl,
       });
       res.status(200).json({ data: result });
     } catch (error) {

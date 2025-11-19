@@ -9,6 +9,8 @@ import { validateQuery, validateBody } from "../middleWare/validateMiddle.js";
 import passport from "passport";
 import type { Server as HttpServer } from "http";
 import { WebsocketService } from "../socket/socket.js";
+import {upload} from "../middleWare/upload.js"
+
 
 export default function createAuthRouter(server:HttpServer) {
   const router = express.Router();
@@ -27,6 +29,7 @@ export default function createAuthRouter(server:HttpServer) {
   // 회원가입 API
   router.post(
     "/register",
+    upload.single("profileImage"),
     validateBody(authRegisterSchema),
     async (req: Request, res: Response, next: NextFunction) => {
       await authController.register(req, res, next);

@@ -30,7 +30,7 @@ export class AuthService {
       },
     });
   }
-  async register({ email, password, nickname }: RegisterDTO) {
+  async register({ email, password, nickname,imageUrl }: RegisterDTO) {
     const validateUser = await this.findUser(email, nickname);
     if (validateUser)
       throw new Error("이메일이나 nickname 중복 되어져 있습니다");
@@ -41,6 +41,7 @@ export class AuthService {
         email,
         password: userPassword,
         nickname,
+        imageUrl
       },
     });
 
