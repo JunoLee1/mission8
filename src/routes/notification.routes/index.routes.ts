@@ -2,6 +2,7 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import sendRouter from "./send.routes.js";
 import readRouter from "./mark_as_read.routes.js";
+import { NotificationService } from "../../service/notification.service.js"
 import { NotificationController } from "../../controller/notification.controller.js";
 import {
   validateQuery,
@@ -13,9 +14,16 @@ import {
 } from "../../validation/notification.validation.js";
 import passport from "passport";
 import { WebsocketService } from "../../socket/socket.js";
+import prisma from "../../lib/prisma.js"
+import { Server as HTTPServer } from "http";
 
-export default function createNotification(wss: WebsocketService) {
-  const notificationController = new NotificationController(wss);
+
+export default function createNotification(server:HTTPServer) {
+  const wss = new WebsocketService(server);
+
+  const notificationService = new NotificationService(prisma, wss);
+  
+  const notificationController = new NotificationController(notificationService);
 
   const router = express.Router();
 

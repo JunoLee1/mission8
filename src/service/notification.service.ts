@@ -5,22 +5,14 @@ import type {
   NotificationCategory,
 } from "@prisma/client";
 import prisma from "../lib/prisma.js";
-import type {
-  NotificationQuery,
-} from "../dto/notification.dto.js";
+import type { NotificationQuery } from "../dto/notification.dto.js";
 import type { NotificationPayload } from "../socket/socket.js"; // WebSocketMessage 타입 포함
 import WebSocket, { WebSocketServer } from "ws";
 
 import type { WebsocketService } from "../socket/socket.js";
 export class NotificationService {
   
-  private prisma: PrismaClient;
-  private wss: WebsocketService
-  constructor(prisma: PrismaClient, wss : WebsocketService) {
-    this.prisma = prisma;
-    this.wss  = wss
-  }
-
+  constructor(private prisma: PrismaClient, private wss: WebsocketService) {}
 
   async accessAlerts(query: NotificationQuery) {
     const { page, take, category, type } = query;
@@ -46,7 +38,7 @@ export class NotificationService {
     content: string,
     type: NotificationTypes,
     category: NotificationCategory,
-    nickname:string,
+    nickname: string
   ): Promise<Notification> {
     const data = {
       senderId,
@@ -54,9 +46,9 @@ export class NotificationService {
       content,
       type,
       category,
-      nickname
-    }
-    console.log("nickname:", nickname)
+      nickname,
+    };
+    console.log("nickname:", nickname);
     return this.prisma.notification.create({ data });
   }
   async createAndGenerate(
@@ -70,17 +62,15 @@ export class NotificationService {
     nickname?: string,
     oldPrice?: number,
     newPrice?: number
-    
   ): Promise<{ notification: Notification; payload: NotificationPayload }> {
-      
-    console.log("senderId:",senderId)
-     const commenter = await this.prisma.user.findUnique({
-        where: { id: senderId }
-      });
+    console.log("senderId:", senderId);
+    const commenter = await this.prisma.user.findUnique({
+      where: { id: senderId },
+    });
     if (!commenter) throw new Error("Commenter not found");
-    
-    console.log("receiverId", receiverId)
-  const finalNickname = nickname ?? commenter.nickname ?? ""
+
+    console.log("receiverId", receiverId);
+    const finalNickname = nickname ?? commenter.nickname ?? "";
     const notification = await this.createNotification(
       senderId,
       receiverId,
@@ -89,7 +79,7 @@ export class NotificationService {
       category,
       finalNickname
     );
-    console.log(finalNickname)
+    console.log(finalNickname);
     let payload: NotificationPayload;
     if (category === "CHANGED_PRICE") {
       payload = {
@@ -108,22 +98,23 @@ export class NotificationService {
         nickname
       );
     }
-    console.log(notification)
-    console.log(notification, payload)
+    console.log(notification);
+    console.log(notification, payload);
     return { notification, payload };
   }
 
- async generatePayload(
+  async generatePayload(
     category: "NEW_COMMENT" | "NEW_LIKE" | "CHANGED_PRICE",
     userId: number,
     content: string,
     articleId?: number,
     productId?: number,
     nickname?: string
-  ): Promise<NotificationPayload>{
-      const user = !nickname ? await this.prisma.user.findUnique({ where: { id: userId } }) : null;
-  const finalNickname = nickname ?? user?.nickname ?? "unknown";
-
+  ): Promise<NotificationPayload> {
+    const user = !nickname
+      ? await this.prisma.user.findUnique({ where: { id: userId } })
+      : null;
+    const finalNickname = nickname ?? user?.nickname ?? "unknown";
 
     switch (category) {
       case "NEW_COMMENT":

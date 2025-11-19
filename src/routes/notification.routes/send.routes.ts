@@ -5,10 +5,14 @@ import { validateBody } from "../../middleWare/validateMiddle.js";
 import { bodySchema } from "../../validation/notification.validation.js";
 import passport from "passport";
 import { WebsocketService } from "../../socket/socket.js";
+import { NotificationService } from "../../service/notification.service.js";
+import prisma from"../../lib/prisma.js"
+
 
 export default function createNotificationSend(wss: WebsocketService) {
   const router = express.Router();
-  const notificationController = new NotificationController(wss);
+  const notificationService = new NotificationService(prisma,wss)
+  const notificationController = new NotificationController(notificationService);
 
   // 알림 전송
   router.post(
@@ -19,6 +23,6 @@ export default function createNotificationSend(wss: WebsocketService) {
       return notificationController.alertSend(req, res, next);
     }
   );
-
+  
   return router;
 }

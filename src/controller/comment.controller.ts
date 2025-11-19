@@ -4,7 +4,7 @@ import type { CommentDTO, CommentPatchDTO } from "../dto/comment.dto.js";
 import prisma from "../lib/prisma.js";
 import { Server as HttpServer } from "http";
 import { WebsocketService } from "../socket/socket.js";
-import  { NotificationService } from "service/notification.service.js";
+import  { NotificationService } from "../service/notification.service.js";
 import type { PrismaClient } from "@prisma/client";
 
 export class CommentController {
@@ -16,7 +16,7 @@ export class CommentController {
     this.wss = new WebsocketService(server);
     this.prisma = prisma
     this.notificationService = new NotificationService(this.prisma, this.wss)
-    this.commentService = new CommentService(prisma, this.notificationService, this.wss,); // <- 공용 데이터
+    this.commentService = new CommentService(prisma, this.notificationService, this.wss); // <- 공용 데이터
     //this.notificationService = new NotificationService(prisma)
   }
 
