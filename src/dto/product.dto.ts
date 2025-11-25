@@ -11,6 +11,7 @@ export interface productDTO {
   userId?: number;
   comment?: Comment[];
   productTags?: number[];
+  productImage: string
 }
 
 export interface ProductQueryDTO {
