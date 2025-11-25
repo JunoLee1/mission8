@@ -1,9 +1,7 @@
 import prisma from "../lib/prisma.js";
 import type { ProductQueryDTO, productDTO } from "../dto/product.dto.js";
-
 import { Helper } from "../helper/helper.js";
 import { NotificationService } from "./notification.service.js";
-import { WebSocketServer } from "ws";
 import { emitToUser } from "../server.js";
 import type { WebsocketService } from "../socket/socket.js";
 import type { PrismaClient } from "@prisma/client/extension";

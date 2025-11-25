@@ -51,7 +51,7 @@
     }
 
     async modifyUserInfo(user: IUserDTO) {
-      const { id, email, nickname } = user;
+      const { id, email, nickname, imageUrl} = user;
 
       const validatedUser = await this.findUserById(id);
       if (!validatedUser) throw new Error("존재 하지 않는 유저 입니다");
@@ -60,6 +60,7 @@
         data: {
           ...(nickname !== undefined && { nickname }),
           ...(email !== undefined && { email }),
+          ...(imageUrl !== undefined && { imageUrl })
         },
       });
       return result;
@@ -90,4 +91,5 @@
       });
       return result;
     }
+
   }
